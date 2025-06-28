@@ -1,0 +1,19 @@
+{
+  "name": "airport-local-chat",
+  "version": "1.0.0",
+  "description": "Airport Local Chat is a lightweight local chat server you can run on a phone or laptop to keep friends in touch when there's no internet connection, e.g. while flying. It uses Node.js with Express and Socket.IO for real-time messaging and a very simple web interface.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "uuid": "^11.1.0"
+  }
+}
