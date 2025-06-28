@@ -7,6 +7,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 - Edit or delete your own messages
 - Chat persists across reconnects
 - Runs entirely offline on local Wi-Fi
+- Choose a display name that persists across refreshes
 
 ## Roadmap
 - Multiple chat rooms
@@ -123,8 +124,10 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
    ```
 3. Start the server:
    ```bash
-   node server.js
-   ```
+ node server.js
+  ```
 4. Connect to the server's IP address in your browser to join the chat.
+5. Messages are saved to `chat.json` so history remains after the server restarts.
+6. Your chosen display name is stored in your browser so it stays after refreshes.
 
 
