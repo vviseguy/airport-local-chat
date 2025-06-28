@@ -9,7 +9,8 @@ class Message {
     type = 'text',
     timestamp = Date.now(),
     edited = false,
-    deleted = false
+    deleted = false,
+    reactions = {}
   } = {}) {
     this.id = id;
     this.user = user; // {id, name}
@@ -18,6 +19,7 @@ class Message {
     this.timestamp = timestamp;
     this.edited = edited;
     this.deleted = deleted;
+    this.reactions = reactions; // {emoji: [{id,name}]}
   }
 }
 
@@ -68,6 +70,23 @@ class Chat {
       msg.content = 'Message removed';
       this.save();
     }
+    return msg;
+  }
+
+  toggleReaction(id, emoji, user) {
+    const msg = this.messages.find(m => m.id === id && !m.deleted);
+    if (!msg) return null;
+    if (!msg.reactions[emoji]) {
+      msg.reactions[emoji] = [];
+    }
+    const exists = msg.reactions[emoji].find(u => u.id === user.id);
+    if (exists) {
+      msg.reactions[emoji] = msg.reactions[emoji].filter(u => u.id !== user.id);
+      if (msg.reactions[emoji].length === 0) delete msg.reactions[emoji];
+    } else {
+      msg.reactions[emoji].push(user);
+    }
+    this.save();
     return msg;
   }
 

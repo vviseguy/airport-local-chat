@@ -4,6 +4,7 @@ const input = document.getElementById('input');
 const messages = document.getElementById('messages');
 const changeNameBtn = document.getElementById('change-name');
 const displayNameEl = document.getElementById('display-name');
+const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 
 // user identification stored locally
 let userId = localStorage.getItem('userId');
@@ -41,9 +42,36 @@ function renderMessage(msg) {
   span.textContent = text;
   item.appendChild(span);
 
+  if (!msg.deleted) {
+    const reactionsDiv = document.createElement('div');
+    reactionsDiv.className = 'reactions';
+
+    if (msg.reactions) {
+      Object.entries(msg.reactions).forEach(([emoji, users]) => {
+        if (users.length) {
+          const rSpan = document.createElement('span');
+          rSpan.textContent = `${emoji} ${users.length}`;
+          rSpan.title = users.map(u => u.name).join(', ');
+          rSpan.onclick = () => showReactionMenu(msg.id, rSpan);
+          reactionsDiv.appendChild(rSpan);
+        }
+      });
+    }
+
+    const addBtn = document.createElement('button');
+    addBtn.innerHTML = '<i class="fa-regular fa-face-smile"></i>';
+    addBtn.onclick = e => {
+      e.stopPropagation();
+      showReactionMenu(msg.id, addBtn);
+    };
+    reactionsDiv.appendChild(addBtn);
+
+    item.appendChild(reactionsDiv);
+  }
+
   if (msg.user.id === userId && !msg.deleted) {
     const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
+    editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>';
     editBtn.onclick = () => {
       const newContent = prompt('Edit message', msg.content);
       if (newContent != null && newContent !== msg.content) {
@@ -53,7 +81,7 @@ function renderMessage(msg) {
     item.appendChild(editBtn);
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = 'Delete';
+    delBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
     delBtn.onclick = () => {
       if (confirm('Delete this message?')) {
         socket.emit('delete message', { id: msg.id, userId });
@@ -78,6 +106,26 @@ function updateMessage(msg) {
   }
 }
 
+let openMenu = null;
+function showReactionMenu(messageId, anchor) {
+  if (openMenu) openMenu.remove();
+  const menu = document.createElement('div');
+  menu.className = 'reaction-menu';
+  reactionOptions.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.textContent = emoji;
+    btn.onclick = e => {
+      e.stopPropagation();
+      socket.emit('reaction', { id: messageId, emoji, user: { id: userId, name: username } });
+      menu.remove();
+      openMenu = null;
+    };
+    menu.appendChild(btn);
+  });
+  anchor.parentNode.insertBefore(menu, anchor.nextSibling);
+  openMenu = menu;
+}
+
 socket.on('chat history', history => {
   messages.innerHTML = '';
   history.forEach(m => appendMessage(m));
@@ -86,6 +134,7 @@ socket.on('chat history', history => {
 socket.on('chat message', appendMessage);
 socket.on('edit message', updateMessage);
 socket.on('delete message', updateMessage);
+socket.on('reaction', updateMessage);
 
 form.addEventListener('submit', e => {
   e.preventDefault();

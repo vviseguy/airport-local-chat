@@ -5,6 +5,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 ## Features
 - Single chat room with basic message history
 - Edit or delete your own messages
+- React to messages with emoji
 - Chat persists across reconnects
 - Runs entirely offline on local Wi-Fi
 - Choose a display name that persists across refreshes
@@ -51,8 +52,9 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 - **React to Messages**  
   As a user, I want to quickly add emoji reactions to any message to show
   agreement or amusement.  
-  *UI*: Long-press or hover over a message to reveal a list of emoji. Choose one
-  to pin it below the message.
+  *UI*: Click the smile icon next to a message and choose an emoji. Clicking the
+  same emoji again removes your reaction. Hover over a reaction to see who added
+  it.
 
 - **Delete Messages**  
   As the sender, I want the ability to delete my own messages if I make a
