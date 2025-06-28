@@ -34,6 +34,13 @@ io.on('connection', socket => {
       io.emit('delete message', msg);
     }
   });
+
+  socket.on('reaction', ({ id, emoji, user }) => {
+    const msg = chat.toggleReaction(id, emoji, user);
+    if (msg) {
+      io.emit('reaction', msg);
+    }
+  });
 });
 
 const PORT = process.env.PORT || 3000;
