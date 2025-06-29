@@ -26,7 +26,7 @@ class Message {
 class Chat {
   constructor(path) {
     this.path = path || 'chat.json';
-    this.messages = [];
+    this.rooms = { general: [] };
     this.load();
   }
 
@@ -34,26 +34,54 @@ class Chat {
     try {
       const data = fs.readFileSync(this.path, 'utf-8');
       const parsed = JSON.parse(data);
-      this.messages = parsed.messages.map(m => new Message(m));
+      if (parsed.rooms) {
+        this.rooms = {};
+        for (const [room, msgs] of Object.entries(parsed.rooms)) {
+          this.rooms[room] = msgs.map(m => new Message(m));
+        }
+      } else if (parsed.messages) {
+        this.rooms = { general: parsed.messages.map(m => new Message(m)) };
+      }
     } catch (err) {
-      this.messages = [];
+      this.rooms = { general: [] };
     }
   }
 
   save() {
-    const data = JSON.stringify({ messages: this.messages }, null, 2);
-    fs.writeFileSync(this.path, data);
+    const serialised = {};
+    serialised.rooms = {};
+    for (const [room, msgs] of Object.entries(this.rooms)) {
+      serialised.rooms[room] = msgs;
+    }
+    fs.writeFileSync(this.path, JSON.stringify(serialised, null, 2));
   }
 
-  addMessage(msg) {
+  ensureRoom(room) {
+    if (!this.rooms[room]) {
+      this.rooms[room] = [];
+    }
+  }
+
+  listRooms() {
+    return Object.keys(this.rooms);
+  }
+
+  getMessages(room = 'general') {
+    this.ensureRoom(room);
+    return this.rooms[room];
+  }
+
+  addMessage(room, msg) {
+    this.ensureRoom(room);
     const message = msg instanceof Message ? msg : new Message(msg);
-    this.messages.push(message);
+    this.rooms[room].push(message);
     this.save();
     return message;
   }
 
-  editMessage(id, newContent) {
-    const msg = this.messages.find(m => m.id === id && !m.deleted);
+  editMessage(room, id, newContent) {
+    this.ensureRoom(room);
+    const msg = this.rooms[room].find(m => m.id === id && !m.deleted);
     if (msg) {
       msg.content = newContent;
       msg.edited = true;
@@ -63,8 +91,9 @@ class Chat {
     return msg;
   }
 
-  deleteMessage(id) {
-    const msg = this.messages.find(m => m.id === id && !m.deleted);
+  deleteMessage(room, id) {
+    this.ensureRoom(room);
+    const msg = this.rooms[room].find(m => m.id === id && !m.deleted);
     if (msg) {
       msg.deleted = true;
       msg.content = 'Message removed';
@@ -73,8 +102,9 @@ class Chat {
     return msg;
   }
 
-  toggleReaction(id, emoji, user) {
-    const msg = this.messages.find(m => m.id === id && !m.deleted);
+  toggleReaction(room, id, emoji, user) {
+    this.ensureRoom(room);
+    const msg = this.rooms[room].find(m => m.id === id && !m.deleted);
     if (!msg) return null;
     if (!msg.reactions[emoji]) {
       msg.reactions[emoji] = [];
@@ -91,7 +121,7 @@ class Chat {
   }
 
   toJSON() {
-    return { messages: this.messages };
+    return { rooms: this.rooms };
   }
 }
 
