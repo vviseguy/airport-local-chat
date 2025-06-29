@@ -10,6 +10,7 @@ const roomMenu = document.getElementById('room-menu');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
 const imageBtn = document.getElementById('image-btn');
+const imageInput = document.getElementById('image-input')
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 roomMenu.style.display = 'none';
 
