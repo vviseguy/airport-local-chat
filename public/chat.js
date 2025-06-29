@@ -6,6 +6,19 @@ const changeNameBtn = document.getElementById('change-name');
 const displayNameEl = document.getElementById('display-name');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 
+function smartTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const opts = { hour: '2-digit', minute: '2-digit' };
+  if (sameDay) return d.toLocaleTimeString([], opts);
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const dateOpts = sameYear
+    ? { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+    : { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return d.toLocaleDateString([], dateOpts);
+}
+
 // user identification stored locally
 let userId = localStorage.getItem('userId');
 if (!userId) {
@@ -31,16 +44,14 @@ changeNameBtn.onclick = () => {
 function renderMessage(msg) {
   const item = document.createElement('li');
   item.className = 'msg';
+  if (msg.user.id === userId) item.classList.add('self');
   item.dataset.id = msg.id;
-  const time = new Date(msg.timestamp).toLocaleTimeString();
-  let content = msg.deleted ? 'Message removed' : msg.content;
-  let text = `[${time}] ${msg.user.name}: ${content}`;
-  if (msg.edited && !msg.deleted) {
-    text += ' (edited)';
-  }
-  const span = document.createElement('span');
-  span.textContent = text;
-  item.appendChild(span);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const content = msg.deleted ? 'Message removed' : msg.content;
+  meta.innerHTML = `<strong>${msg.user.name}:</strong> <span class="text">${content}</span> <span class="time">${smartTime(msg.timestamp)}</span>${msg.edited && !msg.deleted ? ' <em>(edited)</em>' : ''}`;
+  item.appendChild(meta);
 
   if (!msg.deleted) {
     const reactionsDiv = document.createElement('div');
@@ -59,7 +70,8 @@ function renderMessage(msg) {
     }
 
     const addBtn = document.createElement('button');
-    addBtn.innerHTML = '<i class="fa-regular fa-face-smile"></i>';
+    addBtn.className = 'icon-button';
+    addBtn.innerHTML = '<i class="fa-regular fa-face-smile" aria-hidden="true"></i><span class="icon-fallback">React</span>';
     addBtn.onclick = e => {
       e.stopPropagation();
       showReactionMenu(msg.id, addBtn);
@@ -71,7 +83,8 @@ function renderMessage(msg) {
 
   if (msg.user.id === userId && !msg.deleted) {
     const editBtn = document.createElement('button');
-    editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>';
+    editBtn.className = 'icon-button';
+    editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
     editBtn.onclick = () => {
       const newContent = prompt('Edit message', msg.content);
       if (newContent != null && newContent !== msg.content) {
@@ -81,7 +94,8 @@ function renderMessage(msg) {
     item.appendChild(editBtn);
 
     const delBtn = document.createElement('button');
-    delBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+    delBtn.className = 'icon-button';
+    delBtn.innerHTML = '<i class="fa-regular fa-trash-can" aria-hidden="true"></i><span class="icon-fallback">Delete</span>';
     delBtn.onclick = () => {
       if (confirm('Delete this message?')) {
         socket.emit('delete message', { id: msg.id, userId });
