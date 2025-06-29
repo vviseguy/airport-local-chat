@@ -10,7 +10,6 @@ const imageInput = document.getElementById('image-input');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
 const imageBtn = document.getElementById('image-btn');
-const imageInput = document.getElementById('image-input');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 
 imageBtn.addEventListener('click', () => imageInput.click());
@@ -83,6 +82,9 @@ newGameBtn.onclick = () => {
   const game = prompt('Start which game? (tictactoe)');
   if (game === 'tictactoe') {
     socket.emit('start game', { game: 'tictactoe', user: { id: userId, name: username } });
+  }
+};
+
 let currentRoom = localStorage.getItem('room') || 'general';
 
 socket.on('room list', rooms => {
