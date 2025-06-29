@@ -4,6 +4,8 @@ const input = document.getElementById('input');
 const messages = document.getElementById('messages');
 const changeNameBtn = document.getElementById('change-name');
 const displayNameEl = document.getElementById('display-name');
+const roomSelect = document.getElementById('room-select');
+const addRoomBtn = document.getElementById('add-room');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 
 // user identification stored locally
@@ -25,6 +27,44 @@ changeNameBtn.onclick = () => {
     username = newName;
     localStorage.setItem('username', username);
     displayNameEl.textContent = `Name: ${username}`;
+  }
+};
+
+let currentRoom = localStorage.getItem('room') || 'general';
+
+socket.on('room list', rooms => {
+  roomSelect.innerHTML = '';
+  rooms.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r;
+    opt.textContent = r;
+    roomSelect.appendChild(opt);
+  });
+  if (!rooms.includes(currentRoom)) {
+    currentRoom = 'general';
+    localStorage.setItem('room', currentRoom);
+  }
+  roomSelect.value = currentRoom;
+  socket.emit('join room', currentRoom);
+});
+
+roomSelect.onchange = () => {
+  currentRoom = roomSelect.value;
+  localStorage.setItem('room', currentRoom);
+  socket.emit('join room', currentRoom);
+};
+
+addRoomBtn.onclick = () => {
+  const name = prompt('Enter new room name');
+  if (name) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    roomSelect.appendChild(opt);
+    currentRoom = name;
+    roomSelect.value = name;
+    localStorage.setItem('room', currentRoom);
+    socket.emit('join room', currentRoom);
   }
 };
 
@@ -75,7 +115,7 @@ function renderMessage(msg) {
     editBtn.onclick = () => {
       const newContent = prompt('Edit message', msg.content);
       if (newContent != null && newContent !== msg.content) {
-        socket.emit('edit message', { id: msg.id, content: newContent, userId });
+        socket.emit('edit message', { room: currentRoom, id: msg.id, content: newContent, userId });
       }
     };
     item.appendChild(editBtn);
@@ -84,7 +124,7 @@ function renderMessage(msg) {
     delBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
     delBtn.onclick = () => {
       if (confirm('Delete this message?')) {
-        socket.emit('delete message', { id: msg.id, userId });
+        socket.emit('delete message', { room: currentRoom, id: msg.id, userId });
       }
     };
     item.appendChild(delBtn);
@@ -116,7 +156,7 @@ function showReactionMenu(messageId, anchor) {
     btn.textContent = emoji;
     btn.onclick = e => {
       e.stopPropagation();
-      socket.emit('reaction', { id: messageId, emoji, user: { id: userId, name: username } });
+      socket.emit('reaction', { room: currentRoom, id: messageId, emoji, user: { id: userId, name: username } });
       menu.remove();
       openMenu = null;
     };
@@ -139,7 +179,7 @@ socket.on('reaction', updateMessage);
 form.addEventListener('submit', e => {
   e.preventDefault();
   if (input.value) {
-    const msg = { user: { id: userId, name: username }, content: input.value };
+    const msg = { room: currentRoom, user: { id: userId, name: username }, content: input.value };
     socket.emit('chat message', msg);
     input.value = '';
   }
