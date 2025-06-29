@@ -126,52 +126,38 @@ function renderMessage(msg) {
   item.className = 'msg';
   if (msg.user.id === userId) item.classList.add('self');
   item.dataset.id = msg.id;
-  const time = new Date(msg.timestamp).toLocaleTimeString();
+
   const header = document.createElement('div');
-  header.textContent = `[${time}] ${msg.user.name}:`;
+  header.className = 'msg-header';
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'msg-user';
+  nameSpan.textContent = msg.user.name;
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'msg-time';
+  timeSpan.textContent = smartTime(msg.timestamp) + (msg.edited && !msg.deleted ? ' (edited)' : '');
+  header.appendChild(nameSpan);
+  header.appendChild(timeSpan);
   item.appendChild(header);
 
+  const body = document.createElement('div');
+  body.className = 'msg-body';
   if (msg.type === 'image' && !msg.deleted) {
     const img = document.createElement('img');
     img.src = msg.content;
     img.style.maxWidth = '200px';
-    item.appendChild(img);
+    body.appendChild(img);
   } else if (msg.type === 'game' && !msg.deleted && msg.content.game === 'tictactoe') {
-    item.appendChild(renderTicTacToe(msg));
+    body.appendChild(renderTicTacToe(msg));
   } else {
-    let content = msg.deleted ? 'Message removed' : msg.content;
-    if (msg.edited && !msg.deleted) {
-      content += ' (edited)';
-    }
     const span = document.createElement('span');
-    span.textContent = content;
-    item.appendChild(span);
+    span.textContent = msg.deleted ? 'Message removed' : msg.content;
+    body.appendChild(span);
   }
-
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-  let contentEl;
-  if (msg.type === 'image' && !msg.deleted) {
-    contentEl = document.createElement('img');
-    contentEl.src = msg.content;
-    contentEl.style.maxWidth = '100%';
-  } else {
-    contentEl = document.createElement('span');
-    contentEl.className = 'text';
-    contentEl.textContent = msg.deleted ? 'Message removed' : msg.content;
-  }
-  const info = document.createElement('span');
-  info.className = 'time';
-  info.textContent = smartTime(msg.timestamp);
-  meta.innerHTML = `<strong>${msg.user.name}:</strong> `;
-  meta.appendChild(contentEl);
-  meta.appendChild(info);
-  if (msg.edited && !msg.deleted) meta.insertAdjacentHTML('beforeend', ' <em>(edited)</em>');
-  item.appendChild(meta);
+  item.appendChild(body);
 
   if (!msg.deleted) {
     const reactionsDiv = document.createElement('div');
-    reactionsDiv.className = 'reactions';
+    reactionsDiv.className = 'msg-reactions';
 
     if (msg.reactions) {
       Object.entries(msg.reactions).forEach(([emoji, users]) => {
