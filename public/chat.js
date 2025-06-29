@@ -6,7 +6,27 @@ const changeNameBtn = document.getElementById('change-name');
 const displayNameEl = document.getElementById('display-name');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
+const imageBtn = document.getElementById('image-btn');
+const imageInput = document.getElementById('image-input');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
+
+imageBtn.addEventListener('click', () => imageInput.click());
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const msg = {
+      room: currentRoom,
+      user: { id: userId, name: username },
+      type: 'image',
+      content: reader.result
+    };
+    socket.emit('chat message', msg);
+  };
+  reader.readAsDataURL(file);
+  imageInput.value = '';
+});
 
 function smartTime(ts) {
   const d = new Date(ts);
@@ -89,8 +109,23 @@ function renderMessage(msg) {
 
   const meta = document.createElement('div');
   meta.className = 'meta';
-  const content = msg.deleted ? 'Message removed' : msg.content;
-  meta.innerHTML = `<strong>${msg.user.name}:</strong> <span class="text">${content}</span> <span class="time">${smartTime(msg.timestamp)}</span>${msg.edited && !msg.deleted ? ' <em>(edited)</em>' : ''}`;
+  let contentEl;
+  if (msg.type === 'image' && !msg.deleted) {
+    contentEl = document.createElement('img');
+    contentEl.src = msg.content;
+    contentEl.style.maxWidth = '100%';
+  } else {
+    contentEl = document.createElement('span');
+    contentEl.className = 'text';
+    contentEl.textContent = msg.deleted ? 'Message removed' : msg.content;
+  }
+  const info = document.createElement('span');
+  info.className = 'time';
+  info.textContent = smartTime(msg.timestamp);
+  meta.innerHTML = `<strong>${msg.user.name}:</strong> `;
+  meta.appendChild(contentEl);
+  meta.appendChild(info);
+  if (msg.edited && !msg.deleted) meta.insertAdjacentHTML('beforeend', ' <em>(edited)</em>');
   item.appendChild(meta);
 
   if (!msg.deleted) {
@@ -193,7 +228,12 @@ socket.on('reaction', updateMessage);
 form.addEventListener('submit', e => {
   e.preventDefault();
   if (input.value) {
-    const msg = { room: currentRoom, user: { id: userId, name: username }, content: input.value };
+    const msg = {
+      room: currentRoom,
+      user: { id: userId, name: username },
+      type: 'text',
+      content: input.value
+    };
     socket.emit('chat message', msg);
     input.value = '';
   }
