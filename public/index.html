@@ -87,6 +87,17 @@
       margin-top: 0.25em;
     }
 
+    .ttt td {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      border: 1px solid #666;
+      font-size: 1.5em;
+    }
+
+    .ttt table {
+      border-collapse: collapse;
+    }
     .icon-fallback {
       display: none;
     }
@@ -96,6 +107,9 @@
   <header style="padding:0.5em;background:#f0f0f0;display:flex;gap:0.5em;align-items:center;">
     <span id="display-name"></span>
     <button id="change-name">Change Name</button>
+    <button id="new-game">New Game</button>
+    <button id="send-image-btn">Image</button>
+    <input id="image-input" type="file" accept="image/*" style="display:none" />
     <select id="room-select"></select>
     <button id="add-room">Add Room</button>
   </header>

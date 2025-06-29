@@ -4,6 +4,9 @@ const input = document.getElementById('input');
 const messages = document.getElementById('messages');
 const changeNameBtn = document.getElementById('change-name');
 const displayNameEl = document.getElementById('display-name');
+const newGameBtn = document.getElementById('new-game');
+const sendImageBtn = document.getElementById('send-image-btn');
+const imageInput = document.getElementById('image-input');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
@@ -43,6 +46,23 @@ changeNameBtn.onclick = () => {
   }
 };
 
+sendImageBtn.onclick = () => imageInput.click();
+imageInput.onchange = () => {
+  const file = imageInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      socket.emit('image', { data: base64, name: file.name, user: { id: userId, name: username } });
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+newGameBtn.onclick = () => {
+  const game = prompt('Start which game? (tictactoe)');
+  if (game === 'tictactoe') {
+    socket.emit('start game', { game: 'tictactoe', user: { id: userId, name: username } });
 let currentRoom = localStorage.getItem('room') || 'general';
 
 socket.on('room list', rooms => {
@@ -86,6 +106,27 @@ function renderMessage(msg) {
   item.className = 'msg';
   if (msg.user.id === userId) item.classList.add('self');
   item.dataset.id = msg.id;
+  const time = new Date(msg.timestamp).toLocaleTimeString();
+  const header = document.createElement('div');
+  header.textContent = `[${time}] ${msg.user.name}:`;
+  item.appendChild(header);
+
+  if (msg.type === 'image' && !msg.deleted) {
+    const img = document.createElement('img');
+    img.src = msg.content;
+    img.style.maxWidth = '200px';
+    item.appendChild(img);
+  } else if (msg.type === 'game' && !msg.deleted && msg.content.game === 'tictactoe') {
+    item.appendChild(renderTicTacToe(msg));
+  } else {
+    let content = msg.deleted ? 'Message removed' : msg.content;
+    if (msg.edited && !msg.deleted) {
+      content += ' (edited)';
+    }
+    const span = document.createElement('span');
+    span.textContent = content;
+    item.appendChild(span);
+  }
 
   const meta = document.createElement('div');
   meta.className = 'meta';
@@ -121,7 +162,7 @@ function renderMessage(msg) {
     item.appendChild(reactionsDiv);
   }
 
-  if (msg.user.id === userId && !msg.deleted) {
+  if (msg.user.id === userId && !msg.deleted && msg.type === 'text') {
     const editBtn = document.createElement('button');
     editBtn.className = 'icon-button';
     editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
@@ -160,6 +201,42 @@ function updateMessage(msg) {
   }
 }
 
+function renderTicTacToe(msg) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'ttt';
+  const table = document.createElement('table');
+  const board = msg.content.board;
+  for (let r = 0; r < 3; r++) {
+    const row = document.createElement('tr');
+    for (let c = 0; c < 3; c++) {
+      const idx = r * 3 + c;
+      const cell = document.createElement('td');
+      cell.textContent = board[idx] || '';
+      if (!board[idx] && msg.content.next === userId && (!msg.content.winner)) {
+        cell.style.cursor = 'pointer';
+        cell.onclick = () => {
+          socket.emit('game move', { id: msg.id, index: idx, user: { id: userId, name: username } });
+        };
+      }
+      row.appendChild(cell);
+    }
+    table.appendChild(row);
+  }
+  wrapper.appendChild(table);
+  if (msg.content.winner) {
+    const info = document.createElement('div');
+    if (msg.content.winner === 'draw') {
+      info.textContent = 'Draw!';
+    } else {
+      const idx = msg.content.winner === 'X' ? 0 : 1;
+      const player = msg.content.players[idx];
+      info.textContent = `${player ? player.name : msg.content.winner} wins`;
+    }
+    wrapper.appendChild(info);
+  }
+  return wrapper;
+}
+
 let openMenu = null;
 function showReactionMenu(messageId, anchor) {
   if (openMenu) openMenu.remove();
@@ -189,6 +266,9 @@ socket.on('chat message', appendMessage);
 socket.on('edit message', updateMessage);
 socket.on('delete message', updateMessage);
 socket.on('reaction', updateMessage);
+socket.on('image', appendMessage);
+socket.on('start game', appendMessage);
+socket.on('game update', updateMessage);
 
 form.addEventListener('submit', e => {
   e.preventDefault();
