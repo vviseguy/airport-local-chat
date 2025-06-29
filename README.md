@@ -37,8 +37,8 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 
 - **Send Pictures**  
   As a traveler, I want to share photos (e.g., of our meeting spot) directly
-  from my phone or laptop.  
-  *UI*: In the "Messages" pane, a photo icon opens my file picker or camera.
+  from my phone or laptop.
+  *UI*: In the "Messages" pane, an image icon next to the Send button opens my file picker or camera.
   After selecting, a thumbnail preview appears before sending.
 
 - **View Pictures**  
