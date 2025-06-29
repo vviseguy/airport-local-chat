@@ -16,32 +16,43 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 io.on('connection', socket => {
-  // send existing messages to new client
-  socket.emit('chat history', chat.messages);
+  let currentRoom = 'general';
 
-  socket.on('chat message', msg => {
-    const message = chat.addMessage(msg);
-    io.emit('chat message', message);
+  socket.join(currentRoom);
+  socket.emit('room list', chat.listRooms());
+  socket.emit('chat history', chat.getMessages(currentRoom));
+
+  socket.on('join room', room => {
+    socket.leave(currentRoom);
+    currentRoom = room || 'general';
+    socket.join(currentRoom);
+    socket.emit('chat history', chat.getMessages(currentRoom));
   });
 
-  socket.on('edit message', ({ id, content, userId }) => {
-    const msg = chat.editMessage(id, content);
+  socket.on('chat message', ({ room = currentRoom, ...msg }) => {
+    const message = chat.addMessage(room, msg);
+    io.to(room).emit('chat message', message);
+    io.emit('room list', chat.listRooms());
+  });
+
+  socket.on('edit message', ({ room = currentRoom, id, content, userId }) => {
+    const msg = chat.editMessage(room, id, content);
     if (msg && msg.user.id === userId) {
-      io.emit('edit message', msg);
+      io.to(room).emit('edit message', msg);
     }
   });
 
-  socket.on('delete message', ({ id, userId }) => {
-    const msg = chat.deleteMessage(id);
+  socket.on('delete message', ({ room = currentRoom, id, userId }) => {
+    const msg = chat.deleteMessage(room, id);
     if (msg && msg.user.id === userId) {
-      io.emit('delete message', msg);
+      io.to(room).emit('delete message', msg);
     }
   });
 
-  socket.on('reaction', ({ id, emoji, user }) => {
-    const msg = chat.toggleReaction(id, emoji, user);
+  socket.on('reaction', ({ room = currentRoom, id, emoji, user }) => {
+    const msg = chat.toggleReaction(room, id, emoji, user);
     if (msg) {
-      io.emit('reaction', msg);
+      io.to(room).emit('reaction', msg);
     }
   });
 

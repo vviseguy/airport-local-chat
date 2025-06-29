@@ -7,7 +7,22 @@ const displayNameEl = document.getElementById('display-name');
 const newGameBtn = document.getElementById('new-game');
 const sendImageBtn = document.getElementById('send-image-btn');
 const imageInput = document.getElementById('image-input');
+const roomSelect = document.getElementById('room-select');
+const addRoomBtn = document.getElementById('add-room');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
+
+function smartTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const opts = { hour: '2-digit', minute: '2-digit' };
+  if (sameDay) return d.toLocaleTimeString([], opts);
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const dateOpts = sameYear
+    ? { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+    : { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return d.toLocaleDateString([], dateOpts);
+}
 
 // user identification stored locally
 let userId = localStorage.getItem('userId');
@@ -48,12 +63,48 @@ newGameBtn.onclick = () => {
   const game = prompt('Start which game? (tictactoe)');
   if (game === 'tictactoe') {
     socket.emit('start game', { game: 'tictactoe', user: { id: userId, name: username } });
+let currentRoom = localStorage.getItem('room') || 'general';
+
+socket.on('room list', rooms => {
+  roomSelect.innerHTML = '';
+  rooms.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r;
+    opt.textContent = r;
+    roomSelect.appendChild(opt);
+  });
+  if (!rooms.includes(currentRoom)) {
+    currentRoom = 'general';
+    localStorage.setItem('room', currentRoom);
+  }
+  roomSelect.value = currentRoom;
+  socket.emit('join room', currentRoom);
+});
+
+roomSelect.onchange = () => {
+  currentRoom = roomSelect.value;
+  localStorage.setItem('room', currentRoom);
+  socket.emit('join room', currentRoom);
+};
+
+addRoomBtn.onclick = () => {
+  const name = prompt('Enter new room name');
+  if (name) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    roomSelect.appendChild(opt);
+    currentRoom = name;
+    roomSelect.value = name;
+    localStorage.setItem('room', currentRoom);
+    socket.emit('join room', currentRoom);
   }
 };
 
 function renderMessage(msg) {
   const item = document.createElement('li');
   item.className = 'msg';
+  if (msg.user.id === userId) item.classList.add('self');
   item.dataset.id = msg.id;
   const time = new Date(msg.timestamp).toLocaleTimeString();
   const header = document.createElement('div');
@@ -77,6 +128,12 @@ function renderMessage(msg) {
     item.appendChild(span);
   }
 
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const content = msg.deleted ? 'Message removed' : msg.content;
+  meta.innerHTML = `<strong>${msg.user.name}:</strong> <span class="text">${content}</span> <span class="time">${smartTime(msg.timestamp)}</span>${msg.edited && !msg.deleted ? ' <em>(edited)</em>' : ''}`;
+  item.appendChild(meta);
+
   if (!msg.deleted) {
     const reactionsDiv = document.createElement('div');
     reactionsDiv.className = 'reactions';
@@ -94,7 +151,8 @@ function renderMessage(msg) {
     }
 
     const addBtn = document.createElement('button');
-    addBtn.innerHTML = '<i class="fa-regular fa-face-smile"></i>';
+    addBtn.className = 'icon-button';
+    addBtn.innerHTML = '<i class="fa-regular fa-face-smile" aria-hidden="true"></i><span class="icon-fallback">React</span>';
     addBtn.onclick = e => {
       e.stopPropagation();
       showReactionMenu(msg.id, addBtn);
@@ -106,20 +164,22 @@ function renderMessage(msg) {
 
   if (msg.user.id === userId && !msg.deleted && msg.type === 'text') {
     const editBtn = document.createElement('button');
-    editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>';
+    editBtn.className = 'icon-button';
+    editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
     editBtn.onclick = () => {
       const newContent = prompt('Edit message', msg.content);
       if (newContent != null && newContent !== msg.content) {
-        socket.emit('edit message', { id: msg.id, content: newContent, userId });
+        socket.emit('edit message', { room: currentRoom, id: msg.id, content: newContent, userId });
       }
     };
     item.appendChild(editBtn);
 
     const delBtn = document.createElement('button');
-    delBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+    delBtn.className = 'icon-button';
+    delBtn.innerHTML = '<i class="fa-regular fa-trash-can" aria-hidden="true"></i><span class="icon-fallback">Delete</span>';
     delBtn.onclick = () => {
       if (confirm('Delete this message?')) {
-        socket.emit('delete message', { id: msg.id, userId });
+        socket.emit('delete message', { room: currentRoom, id: msg.id, userId });
       }
     };
     item.appendChild(delBtn);
@@ -187,7 +247,7 @@ function showReactionMenu(messageId, anchor) {
     btn.textContent = emoji;
     btn.onclick = e => {
       e.stopPropagation();
-      socket.emit('reaction', { id: messageId, emoji, user: { id: userId, name: username } });
+      socket.emit('reaction', { room: currentRoom, id: messageId, emoji, user: { id: userId, name: username } });
       menu.remove();
       openMenu = null;
     };
@@ -213,7 +273,7 @@ socket.on('game update', updateMessage);
 form.addEventListener('submit', e => {
   e.preventDefault();
   if (input.value) {
-    const msg = { user: { id: userId, name: username }, content: input.value };
+    const msg = { room: currentRoom, user: { id: userId, name: username }, content: input.value };
     socket.emit('chat message', msg);
     input.value = '';
   }
