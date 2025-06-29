@@ -54,12 +54,27 @@
       gap: 0.25em;
       margin-top: 0.25em;
     }
+
+    .ttt td {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      border: 1px solid #666;
+      font-size: 1.5em;
+    }
+
+    .ttt table {
+      border-collapse: collapse;
+    }
   </style>
 </head>
 <body>
   <header style="padding:0.5em;background:#f0f0f0;">
     <span id="display-name"></span>
     <button id="change-name">Change Name</button>
+    <button id="new-game">New Game</button>
+    <button id="send-image-btn">Image</button>
+    <input id="image-input" type="file" accept="image/*" style="display:none" />
   </header>
   <ul id="messages"></ul>
   <form id="form" action="">
