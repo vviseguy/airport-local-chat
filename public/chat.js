@@ -2,16 +2,17 @@ const socket = io();
 const form = document.getElementById('form');
 const input = document.getElementById('input');
 const messages = document.getElementById('messages');
-const changeNameBtn = document.getElementById('change-name');
 const displayNameEl = document.getElementById('display-name');
 const newGameBtn = document.getElementById('new-game');
-const sendImageBtn = document.getElementById('send-image-btn');
-const imageInput = document.getElementById('image-input');
+const roomNameEl = document.getElementById('room-name');
+const changeRoomBtn = document.getElementById('change-room');
+const roomMenu = document.getElementById('room-menu');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
 const imageBtn = document.getElementById('image-btn');
 const imageInput = document.getElementById('image-input');
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
+roomMenu.style.display = 'none';
 
 imageBtn.addEventListener('click', () => imageInput.click());
 imageInput.addEventListener('change', () => {
@@ -56,17 +57,32 @@ if (!username) {
   username = prompt('Choose a display name') || 'anon';
   localStorage.setItem('username', username);
 }
-displayNameEl.textContent = `Name: ${username}`;
-changeNameBtn.onclick = () => {
-  const newName = prompt('Enter new display name', username);
+displayNameEl.textContent = username;
+displayNameEl.addEventListener('click', () => {
+  displayNameEl.contentEditable = 'true';
+  const range = document.createRange();
+  range.selectNodeContents(displayNameEl);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+});
+displayNameEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    displayNameEl.blur();
+  }
+});
+displayNameEl.addEventListener('blur', () => {
+  displayNameEl.contentEditable = 'false';
+  const newName = displayNameEl.textContent.trim();
   if (newName) {
     username = newName;
     localStorage.setItem('username', username);
-    displayNameEl.textContent = `Name: ${username}`;
+  } else {
+    displayNameEl.textContent = username;
   }
-};
+});
 
-sendImageBtn.onclick = () => imageInput.click();
 imageInput.onchange = () => {
   const file = imageInput.files[0];
   if (file) {
@@ -83,7 +99,15 @@ newGameBtn.onclick = () => {
   const game = prompt('Start which game? (tictactoe)');
   if (game === 'tictactoe') {
     socket.emit('start game', { game: 'tictactoe', user: { id: userId, name: username } });
+  }
+};
+
 let currentRoom = localStorage.getItem('room') || 'general';
+roomNameEl.textContent = currentRoom;
+
+changeRoomBtn.onclick = () => {
+  roomMenu.style.display = roomMenu.style.display === 'none' ? 'block' : 'none';
+};
 
 socket.on('room list', rooms => {
   roomSelect.innerHTML = '';
@@ -98,13 +122,16 @@ socket.on('room list', rooms => {
     localStorage.setItem('room', currentRoom);
   }
   roomSelect.value = currentRoom;
+  roomNameEl.textContent = currentRoom;
   socket.emit('join room', currentRoom);
 });
 
 roomSelect.onchange = () => {
   currentRoom = roomSelect.value;
   localStorage.setItem('room', currentRoom);
+  roomNameEl.textContent = currentRoom;
   socket.emit('join room', currentRoom);
+  roomMenu.style.display = 'none';
 };
 
 addRoomBtn.onclick = () => {
@@ -117,7 +144,9 @@ addRoomBtn.onclick = () => {
     currentRoom = name;
     roomSelect.value = name;
     localStorage.setItem('room', currentRoom);
+    roomNameEl.textContent = currentRoom;
     socket.emit('join room', currentRoom);
+    roomMenu.style.display = 'none';
   }
 };
 
