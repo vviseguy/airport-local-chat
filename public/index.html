@@ -47,11 +47,11 @@
 
     .msg {
       margin-bottom: 0.5em;
-      padding: 0.3em 0.6em;
-      border-radius: 12px;
-      max-width: 80%;
+      padding: 0.5em;
+      border-radius: 8px;
+      max-width: 90%;
       word-wrap: break-word;
-      display: inline-block;
+      display: block;
       background: #e5e5ea;
     }
 
@@ -61,22 +61,23 @@
       margin-left: auto;
     }
 
-    .msg .meta {
+    .msg-header {
+      display: flex;
+      justify-content: space-between;
       font-size: 0.8em;
-      color: #555;
+      margin-bottom: 0.25em;
     }
 
-    .msg .meta .time {
-      font-style: italic;
-      margin-left: 0.4em;
+    .msg-body {
+      margin-bottom: 0.25em;
     }
 
-    .reactions {
+    .msg-reactions {
       margin-top: 0.25em;
       font-size: 0.9em;
     }
 
-    .reactions span {
+    .msg-reactions span {
       margin-right: 0.25em;
       cursor: pointer;
     }
