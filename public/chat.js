@@ -17,22 +17,6 @@ const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 roomMenu.style.display = 'none';
 
 imageBtn.addEventListener('click', () => imageInput.click());
-imageInput.addEventListener('change', () => {
-  const file = imageInput.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const msg = {
-      room: currentRoom,
-      user: { id: userId, name: username },
-      type: 'image',
-      content: reader.result
-    };
-    socket.emit('chat message', msg);
-  };
-  reader.readAsDataURL(file);
-  imageInput.value = '';
-});
 
 function smartTime(ts) {
   const d = new Date(ts);
