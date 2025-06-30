@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { Chat } = require('./chatModel');
+const games = require('./games');
 
 const app = express();
 const server = http.createServer(app);
@@ -56,64 +57,41 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('image', ({ data, name, user }) => {
+  socket.on('image', ({ data, name, user, room = currentRoom }) => {
     const id = uuidv4();
     const ext = path.extname(name) || '.png';
     const fileName = `${id}${ext}`;
     const filePath = path.join(__dirname, 'uploads', fileName);
     fs.writeFileSync(filePath, Buffer.from(data, 'base64'));
-    const message = chat.addMessage({ user, type: 'image', content: `/uploads/${fileName}` });
-    io.emit('image', message);
+    const message = chat.addMessage(room, { user, type: 'image', content: `/uploads/${fileName}` });
+    io.to(room).emit('image', message);
   });
 
   socket.on('start game', ({ game, user }) => {
-    if (game === 'tictactoe') {
-      const message = chat.addMessage({
-        user,
-        type: 'game',
-        content: {
-          game: 'tictactoe',
-          board: Array(9).fill(null),
-          players: [user],
-          next: user.id,
-          winner: null
-        }
-      });
-      io.emit('start game', message);
-    }
+    const mod = games[game];
+    if (!mod) return;
+    const state = mod.createGame(user);
+    const message = chat.addMessage(currentRoom, { user, type: 'game', content: state });
+    io.to(currentRoom).emit('start game', message);
   });
 
   socket.on('game move', ({ id, index, user }) => {
-    const msg = chat.messages.find(m => m.id === id && m.type === 'game');
-    if (!msg) return;
-    const game = msg.content;
-    if (game.game === 'tictactoe' && !game.winner && game.next === user.id && !game.board[index]) {
-      if (!game.players.find(p => p.id === user.id)) {
-        if (game.players.length < 2) game.players.push(user);
+    const find = () => {
+      for (const [room, msgs] of Object.entries(chat.rooms)) {
+        const m = msgs.find(mm => mm.id === id && mm.type === 'game');
+        if (m) return { room, message: m };
       }
-      const symbol = game.players[0].id === user.id ? 'X' : 'O';
-      game.board[index] = symbol;
-      const lines = [
-        [0,1,2],[3,4,5],[6,7,8],
-        [0,3,6],[1,4,7],[2,5,8],
-        [0,4,8],[2,4,6]
-      ];
-      for (const line of lines) {
-        const [a,b,c] = line;
-        if (game.board[a] && game.board[a] === game.board[b] && game.board[a] === game.board[c]) {
-          game.winner = symbol;
-        }
-      }
-      if (!game.winner && game.board.every(v => v)) {
-        game.winner = 'draw';
-      }
-      if (!game.winner) {
-        const other = game.players.find(p => p.id !== user.id);
-        if (other) game.next = other.id;
-      }
-      const updated = chat.editMessage(id, game);
-      if (updated) io.emit('game update', updated);
-    }
+      return null;
+    };
+    const result = find();
+    if (!result) return;
+    const { room, message } = result;
+    const state = message.content;
+    const mod = games[state.game];
+    if (!mod) return;
+    mod.applyMove(state, { index }, user);
+    const updated = chat.editMessage(room, id, state);
+    if (updated) io.to(room).emit('game update', updated);
   });
 });
 
