@@ -43,6 +43,10 @@
       background: none;
       border: none;
       cursor: pointer;
+      color: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25em;
     }
 
     .msg {
@@ -101,6 +105,9 @@
     }
     .icon-fallback {
       display: none;
+    }
+    body.no-fa .icon-fallback {
+      display: inline;
     }
   </style>
 </head>

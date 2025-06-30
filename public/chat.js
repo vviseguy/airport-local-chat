@@ -1,5 +1,19 @@
 import { games } from './games/index.js';
 
+function handleFontAwesome() {
+  const showFallback = () => document.body.classList.add('no-fa');
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+      if (!document.fonts.check('1em "Font Awesome 6 Free"')) {
+        showFallback();
+      }
+    }).catch(showFallback);
+  } else {
+    showFallback();
+  }
+}
+handleFontAwesome();
+
 const socket = io();
 const form = document.getElementById('form');
 const input = document.getElementById('input');
@@ -39,9 +53,14 @@ if (!userId) {
 }
 window.userId = userId;
 
-let username = localStorage.getItem('username');
-if (!username) {
-  username = prompt('Choose a display name') || 'anon';
+let username = localStorage.getItem('username') || '';
+if (!username.trim()) {
+  let input;
+  do {
+    input = prompt('Choose a display name');
+    if (input === null) break;
+  } while (!input.trim());
+  username = input ? input.trim() : 'anon';
   localStorage.setItem('username', username);
 }
 displayNameEl.textContent = username;
