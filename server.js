@@ -60,14 +60,14 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('image', ({ data, name, user }) => {
+  socket.on('image', ({ room = currentRoom, data, name, user }) => {
     const id = uuidv4();
     const ext = path.extname(name) || '.png';
     const fileName = `${id}${ext}`;
     const filePath = path.join(__dirname, 'uploads', fileName);
     fs.writeFileSync(filePath, Buffer.from(data, 'base64'));
-    const message = chat.addMessage({ user, type: 'image', content: `/uploads/${fileName}` });
-    io.emit('image', message);
+    const message = chat.addMessage(room, { user, type: 'image', content: `/uploads/${fileName}` });
+    io.to(room).emit('image', message);
   });
 
   socket.on('start game', ({ game, user }) => {
