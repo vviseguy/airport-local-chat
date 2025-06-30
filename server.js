@@ -17,6 +17,7 @@ const io = new Server(server);
 
 const chat = new Chat(path.join(__dirname, 'chat.json'));
 
+app.use('/fontawesome', express.static(path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadDir));
 

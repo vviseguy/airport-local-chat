@@ -114,7 +114,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 1. Initialize the project:
    ```bash
    npm init -y
-   npm install express socket.io uuid
+   npm install express socket.io uuid @fortawesome/fontawesome-free
    ```
 2. Place the following files as shown:
    ```
@@ -131,6 +131,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 4. Connect to the server's IP address in your browser to join the chat.
 5. Messages are saved to `chat.json` so history remains after the server restarts.
 6. Your chosen display name is stored in your browser so it stays after refreshes.
+7. Font Awesome assets are served from `node_modules` so the app works fully offline.
 
 ## Game API
 
