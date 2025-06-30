@@ -132,4 +132,16 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 5. Messages are saved to `chat.json` so history remains after the server restarts.
 6. Your chosen display name is stored in your browser so it stays after refreshes.
 
+## Game API
+
+Games live in the `games/` directory on both the server and in `public/games/` for the browser. A game module exports three functions:
+
+```
+createGame(user)   // -> initial game state object
+applyMove(state, move, user) // -> updated state after a player move
+summary(state)    // -> short text description of the current state
+```
+
+Client code uses `render(state, sendMove)` (if provided) to draw the board and dispatch moves. `tictactoe.js` demonstrates a complete implementation.
+
 

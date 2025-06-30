@@ -1,3 +1,5 @@
+import { games } from './games/index.js';
+
 const socket = io();
 const form = document.getElementById('form');
 const input = document.getElementById('input');
@@ -51,6 +53,7 @@ if (!userId) {
   userId = crypto.randomUUID();
   localStorage.setItem('userId', userId);
 }
+window.userId = userId;
 
 let username = localStorage.getItem('username');
 if (!username) {
@@ -96,9 +99,10 @@ imageInput.onchange = () => {
 };
 
 newGameBtn.onclick = () => {
-  const game = prompt('Start which game? (tictactoe)');
-  if (game === 'tictactoe') {
-    socket.emit('start game', { game: 'tictactoe', user: { id: userId, name: username } });
+  const list = Object.keys(games).join(', ');
+  const game = prompt(`Start which game? (${list})`);
+  if (game && games[game]) {
+    socket.emit('start game', { game, user: { id: userId, name: username } });
   }
 };
 
@@ -175,8 +179,17 @@ function renderMessage(msg) {
     img.src = msg.content;
     img.style.maxWidth = '200px';
     body.appendChild(img);
-  } else if (msg.type === 'game' && !msg.deleted && msg.content.game === 'tictactoe') {
-    body.appendChild(renderTicTacToe(msg));
+  } else if (msg.type === 'game' && !msg.deleted) {
+    const mod = games[msg.content.game];
+    if (mod && mod.render) {
+      body.appendChild(mod.render(msg.content, move => {
+        socket.emit('game move', { id: msg.id, move, user: { id: userId, name: username } });
+      }));
+    } else {
+      const span = document.createElement('span');
+      span.textContent = '[Unsupported game]';
+      body.appendChild(span);
+    }
   } else {
     const span = document.createElement('span');
     span.textContent = msg.deleted ? 'Message removed' : msg.content;
@@ -251,41 +264,6 @@ function updateMessage(msg) {
   }
 }
 
-function renderTicTacToe(msg) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'ttt';
-  const table = document.createElement('table');
-  const board = msg.content.board;
-  for (let r = 0; r < 3; r++) {
-    const row = document.createElement('tr');
-    for (let c = 0; c < 3; c++) {
-      const idx = r * 3 + c;
-      const cell = document.createElement('td');
-      cell.textContent = board[idx] || '';
-      if (!board[idx] && msg.content.next === userId && (!msg.content.winner)) {
-        cell.style.cursor = 'pointer';
-        cell.onclick = () => {
-          socket.emit('game move', { id: msg.id, index: idx, user: { id: userId, name: username } });
-        };
-      }
-      row.appendChild(cell);
-    }
-    table.appendChild(row);
-  }
-  wrapper.appendChild(table);
-  if (msg.content.winner) {
-    const info = document.createElement('div');
-    if (msg.content.winner === 'draw') {
-      info.textContent = 'Draw!';
-    } else {
-      const idx = msg.content.winner === 'X' ? 0 : 1;
-      const player = msg.content.players[idx];
-      info.textContent = `${player ? player.name : msg.content.winner} wins`;
-    }
-    wrapper.appendChild(info);
-  }
-  return wrapper;
-}
 
 let openMenu = null;
 function showReactionMenu(messageId, anchor) {
