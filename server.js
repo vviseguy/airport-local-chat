@@ -3,6 +3,10 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+
+const uploadDir = path.join(__dirname, 'uploads');
+fs.mkdirSync(uploadDir, { recursive: true });
+
 const { v4: uuidv4 } = require('uuid');
 const { Chat } = require('./chatModel');
 
@@ -13,7 +17,7 @@ const io = new Server(server);
 const chat = new Chat(path.join(__dirname, 'chat.json'));
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadDir));
 
 io.on('connection', socket => {
   let currentRoom = 'general';
