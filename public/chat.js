@@ -19,6 +19,7 @@ const form = document.getElementById('form');
 const input = document.getElementById('input');
 const messages = document.getElementById('messages');
 const displayNameEl = document.getElementById('display-name');
+const editNameBtn = document.getElementById('edit-name');
 const newGameBtn = document.getElementById('new-game');
 const roomNameEl = document.getElementById('room-name');
 const changeRoomBtn = document.getElementById('change-room');
@@ -72,6 +73,9 @@ displayNameEl.addEventListener('click', () => {
   sel.removeAllRanges();
   sel.addRange(range);
 });
+if (editNameBtn) {
+  editNameBtn.addEventListener('click', () => displayNameEl.dispatchEvent(new Event('click')));
+}
 displayNameEl.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
