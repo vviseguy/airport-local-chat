@@ -12,11 +12,13 @@
       padding: 0;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
 
     #messages {
-      flex: 1;
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
       padding: 0.5em;
       list-style: none;
@@ -114,10 +116,16 @@
 <body>
   <header style="padding:0.5em;background:#f0f0f0;display:flex;gap:0.5em;align-items:center;">
     <span id="display-name" style="cursor:text"></span>
-    <button id="new-game">New Game</button>
+    <button id="edit-name" class="icon-button" title="Edit name">
+      <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+      <span class="icon-fallback">Edit</span>
+    </button>
     <span>Chat: <span id="room-name"></span></span>
-    <button id="change-room">Switch Chat</button>
-    <div id="room-menu" style="display:none">
+    <button id="change-room" class="icon-button" title="Switch chat">
+      <i class="fa-solid fa-comments" aria-hidden="true"></i>
+      <span class="icon-fallback">Switch Chat</span>
+    </button>
+    <div id="room-menu" style="display:none;margin-left:auto">
       <select id="room-select"></select>
       <button id="add-room">Add Room</button>
     </div>
@@ -129,6 +137,10 @@
     <button type="button" id="image-btn" class="icon-button" title="Send image">
       <i class="fa-regular fa-image" aria-hidden="true"></i>
       <span class="icon-fallback">Image</span>
+    </button>
+    <button type="button" id="new-game" class="icon-button" title="New game">
+      <i class="fa-solid fa-chess-knight" aria-hidden="true"></i>
+      <span class="icon-fallback">Game</span>
     </button>
     <button>Send</button>
   </form>
