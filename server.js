@@ -62,9 +62,17 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('image', ({ room = currentRoom, data, name, user }) => {
+  socket.on('image', ({ room = currentRoom, data, name, mime, user }) => {
     const id = uuidv4();
-    const ext = path.extname(name) || '.png';
+    let ext = path.extname(name).toLowerCase();
+    if (!ext && mime) {
+      const m = mime.toLowerCase();
+      if (m === 'image/jpeg' || m === 'image/jpg') ext = '.jpg';
+      else if (m === 'image/png') ext = '.png';
+      else if (m === 'image/gif') ext = '.gif';
+      else if (m === 'image/webp') ext = '.webp';
+    }
+    if (!ext) ext = '.png';
     const fileName = `${id}${ext}`;
     const filePath = path.join(__dirname, 'uploads', fileName);
     fs.writeFileSync(filePath, Buffer.from(data, 'base64'));

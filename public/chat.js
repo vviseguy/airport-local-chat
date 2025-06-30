@@ -95,14 +95,21 @@ displayNameEl.addEventListener('blur', () => {
 
 imageInput.onchange = () => {
   const file = imageInput.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result.split(',')[1];
-      socket.emit('image', { data: base64, name: file.name, user: { id: userId, name: username } });
-    };
-    reader.readAsDataURL(file);
-  }
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result;
+    const [prefix, base64] = result.split(',');
+    const mimeMatch = /data:(.*);base64/.exec(prefix);
+    const mime = mimeMatch ? mimeMatch[1] : '';
+    socket.emit('image', {
+      data: base64,
+      name: file.name,
+      mime,
+      user: { id: userId, name: username }
+    });
+  };
+  reader.readAsDataURL(file);
 };
 
 newGameBtn.onclick = () => {
@@ -232,17 +239,19 @@ function renderMessage(msg) {
     item.appendChild(reactionsDiv);
   }
 
-  if (msg.user.id === userId && !msg.deleted && msg.type === 'text') {
-    const editBtn = document.createElement('button');
-    editBtn.className = 'icon-button';
-    editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
-    editBtn.onclick = () => {
-      const newContent = prompt('Edit message', msg.content);
-      if (newContent != null && newContent !== msg.content) {
-        socket.emit('edit message', { room: currentRoom, id: msg.id, content: newContent, userId });
-      }
-    };
-    item.appendChild(editBtn);
+  if (msg.user.id === userId && !msg.deleted) {
+    if (msg.type === 'text') {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-button';
+      editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
+      editBtn.onclick = () => {
+        const newContent = prompt('Edit message', msg.content);
+        if (newContent != null && newContent !== msg.content) {
+          socket.emit('edit message', { room: currentRoom, id: msg.id, content: newContent, userId });
+        }
+      };
+      item.appendChild(editBtn);
+    }
 
     const delBtn = document.createElement('button');
     delBtn.className = 'icon-button';
