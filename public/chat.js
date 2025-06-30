@@ -89,7 +89,7 @@ imageInput.onchange = () => {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result.split(',')[1];
-      socket.emit('image', { data: base64, name: file.name, user: { id: userId, name: username } });
+      socket.emit('image', { room: currentRoom, data: base64, name: file.name, user: { id: userId, name: username } });
     };
     reader.readAsDataURL(file);
   }
