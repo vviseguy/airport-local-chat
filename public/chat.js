@@ -21,6 +21,9 @@ const messages = document.getElementById('messages');
 const displayNameEl = document.getElementById('display-name');
 const editNameBtn = document.getElementById('edit-name');
 const newGameBtn = document.getElementById('new-game');
+const gameMenu = document.getElementById('game-menu');
+const gameSelect = document.getElementById('game-select');
+const startGameBtn = document.getElementById('start-game');
 const roomNameEl = document.getElementById('room-name');
 const changeRoomBtn = document.getElementById('change-room');
 const roomMenu = document.getElementById('room-menu');
@@ -30,6 +33,7 @@ const imageBtn = document.getElementById('image-btn');
 const imageInput = document.getElementById('image-input')
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
 roomMenu.style.display = 'none';
+gameMenu.style.display = 'none';
 
 imageBtn.addEventListener('click', () => imageInput.click());
 
@@ -112,11 +116,26 @@ imageInput.onchange = () => {
   reader.readAsDataURL(file);
 };
 
+function populateGameOptions() {
+  gameSelect.innerHTML = '';
+  Object.keys(games).forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    gameSelect.appendChild(opt);
+  });
+}
+
 newGameBtn.onclick = () => {
-  const list = Object.keys(games).join(', ');
-  const game = prompt(`Start which game? (${list})`);
+  populateGameOptions();
+  gameMenu.style.display = gameMenu.style.display === 'none' ? 'block' : 'none';
+};
+
+startGameBtn.onclick = () => {
+  const game = gameSelect.value;
   if (game && games[game]) {
     socket.emit('start game', { game, user: { id: userId, name: username } });
+    gameMenu.style.display = 'none';
   }
 };
 
