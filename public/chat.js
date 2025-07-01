@@ -25,7 +25,7 @@ const gameMenu = document.getElementById('game-menu');
 const gameSelect = document.getElementById('game-select');
 const startGameBtn = document.getElementById('start-game');
 const roomNameEl = document.getElementById('room-name');
-const changeRoomBtn = document.getElementById('change-room');
+const roomToggle = document.getElementById('room-toggle');
 const roomMenu = document.getElementById('room-menu');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
@@ -142,7 +142,7 @@ startGameBtn.onclick = () => {
 let currentRoom = localStorage.getItem('room') || 'general';
 roomNameEl.textContent = currentRoom;
 
-changeRoomBtn.onclick = () => {
+roomToggle.onclick = () => {
   roomMenu.style.display = roomMenu.style.display === 'none' ? 'block' : 'none';
 };
 
