@@ -71,7 +71,7 @@ class Connect4 extends BaseGame {
         const cell = document.createElement('td');
         const val = state.board[r][c];
         cell.textContent = val ? (val === 'R' ? '🔴' : '🟡') : '';
-        if (r === 0 && clickable(c)) {
+        if (clickable(c)) {
           cell.style.cursor = 'pointer';
           cell.onclick = () => sendMove({ column: c });
         }
