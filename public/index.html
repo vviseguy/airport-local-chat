@@ -115,15 +115,14 @@
 </head>
 <body>
   <header style="padding:0.5em;background:#f0f0f0;display:flex;gap:0.5em;align-items:center;">
+    <div id="room-toggle" style="display:flex;align-items:center;cursor:pointer;gap:0.25em;margin-right:1em;">
+      <i class="fa-solid fa-comments" aria-hidden="true"></i>
+      <span id="room-name" style="font-weight:bold"></span>
+    </div>
     <span id="display-name" style="cursor:text"></span>
     <button id="edit-name" class="icon-button" title="Edit name">
       <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
       <span class="icon-fallback">Edit</span>
-    </button>
-    <span>Chat: <span id="room-name"></span></span>
-    <button id="change-room" class="icon-button" title="Switch chat">
-      <i class="fa-solid fa-comments" aria-hidden="true"></i>
-      <span class="icon-fallback">Switch Chat</span>
     </button>
     <div id="room-menu" style="display:none;margin-left:auto">
       <select id="room-select"></select>

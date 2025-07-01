@@ -22,7 +22,7 @@ const displayNameEl = document.getElementById('display-name');
 const editNameBtn = document.getElementById('edit-name');
 const newGameBtn = document.getElementById('new-game');
 const roomNameEl = document.getElementById('room-name');
-const changeRoomBtn = document.getElementById('change-room');
+const roomToggle = document.getElementById('room-toggle');
 const roomMenu = document.getElementById('room-menu');
 const roomSelect = document.getElementById('room-select');
 const addRoomBtn = document.getElementById('add-room');
@@ -123,7 +123,7 @@ newGameBtn.onclick = () => {
 let currentRoom = localStorage.getItem('room') || 'general';
 roomNameEl.textContent = currentRoom;
 
-changeRoomBtn.onclick = () => {
+roomToggle.onclick = () => {
   roomMenu.style.display = roomMenu.style.display === 'none' ? 'block' : 'none';
 };
 
