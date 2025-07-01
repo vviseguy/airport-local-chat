@@ -193,6 +193,12 @@ function renderMessage(msg) {
   if (msg.user.id === userId) item.classList.add('self');
   item.dataset.id = msg.id;
 
+  const controls = document.createElement('div');
+  controls.className = 'msg-controls';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+
   const header = document.createElement('div');
   header.className = 'msg-header';
   const nameSpan = document.createElement('span');
@@ -200,10 +206,11 @@ function renderMessage(msg) {
   nameSpan.textContent = msg.user.name;
   const timeSpan = document.createElement('span');
   timeSpan.className = 'msg-time';
-  timeSpan.textContent = smartTime(msg.timestamp) + (msg.edited && !msg.deleted ? ' (edited)' : '');
+  timeSpan.textContent =
+    smartTime(msg.timestamp) + (msg.edited && !msg.deleted ? ' (edited)' : '');
   header.appendChild(nameSpan);
   header.appendChild(timeSpan);
-  item.appendChild(header);
+  bubble.appendChild(header);
 
   const body = document.createElement('div');
   body.className = 'msg-body';
@@ -215,9 +222,15 @@ function renderMessage(msg) {
   } else if (msg.type === 'game' && !msg.deleted) {
     const mod = games[msg.content.game];
     if (mod && mod.render) {
-      body.appendChild(mod.render(msg.content, move => {
-        socket.emit('game move', { id: msg.id, move, user: { id: userId, name: username } });
-      }));
+      body.appendChild(
+        mod.render(msg.content, move => {
+          socket.emit('game move', {
+            id: msg.id,
+            move,
+            user: { id: userId, name: username }
+          });
+        })
+      );
     } else {
       const span = document.createElement('span');
       span.textContent = '[Unsupported game]';
@@ -228,7 +241,7 @@ function renderMessage(msg) {
     span.textContent = msg.deleted ? 'Message removed' : msg.content;
     body.appendChild(span);
   }
-  item.appendChild(body);
+  bubble.appendChild(body);
 
   if (!msg.deleted) {
     const reactionsDiv = document.createElement('div');
@@ -248,40 +261,51 @@ function renderMessage(msg) {
 
     const addBtn = document.createElement('button');
     addBtn.className = 'icon-button';
-    addBtn.innerHTML = '<i class="fa-regular fa-face-smile" aria-hidden="true"></i><span class="icon-fallback">React</span>';
+    addBtn.innerHTML =
+      '<i class="fa-regular fa-face-smile" aria-hidden="true"></i><span class="icon-fallback">React</span>';
     addBtn.onclick = e => {
       e.stopPropagation();
       showReactionMenu(msg.id, addBtn);
     };
     reactionsDiv.appendChild(addBtn);
 
-    item.appendChild(reactionsDiv);
+    bubble.appendChild(reactionsDiv);
   }
 
   if (msg.user.id === userId && !msg.deleted) {
     if (msg.type === 'text') {
       const editBtn = document.createElement('button');
       editBtn.className = 'icon-button';
-      editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
+      editBtn.innerHTML =
+        '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span class="icon-fallback">Edit</span>';
       editBtn.onclick = () => {
         const newContent = prompt('Edit message', msg.content);
         if (newContent != null && newContent !== msg.content) {
-          socket.emit('edit message', { room: currentRoom, id: msg.id, content: newContent, userId });
+          socket.emit('edit message', {
+            room: currentRoom,
+            id: msg.id,
+            content: newContent,
+            userId
+          });
         }
       };
-      item.appendChild(editBtn);
+      controls.appendChild(editBtn);
     }
 
     const delBtn = document.createElement('button');
     delBtn.className = 'icon-button';
-    delBtn.innerHTML = '<i class="fa-regular fa-trash-can" aria-hidden="true"></i><span class="icon-fallback">Delete</span>';
+    delBtn.innerHTML =
+      '<i class="fa-regular fa-trash-can" aria-hidden="true"></i><span class="icon-fallback">Delete</span>';
     delBtn.onclick = () => {
       if (confirm('Delete this message?')) {
         socket.emit('delete message', { room: currentRoom, id: msg.id, userId });
       }
     };
-    item.appendChild(delBtn);
+    controls.appendChild(delBtn);
   }
+
+  item.appendChild(controls);
+  item.appendChild(bubble);
 
   return item;
 }

@@ -52,19 +52,31 @@
     }
 
     .msg {
+      display: flex;
+      align-items: center;
       margin-bottom: 0.5em;
+    }
+
+    .msg-bubble {
       padding: 0.5em;
       border-radius: 8px;
       max-width: 90%;
       word-wrap: break-word;
-      display: block;
       background: #e5e5ea;
     }
 
-    .msg.self {
+    .msg.self .msg-bubble {
       background: #0b93f6;
       color: white;
       margin-left: auto;
+    }
+
+    .msg-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 0.5em;
+      gap: 0.25em;
     }
 
     .msg-header {
