@@ -123,10 +123,44 @@
     body.no-fa .icon-fallback {
       display: inline;
     }
+
+    #room-menu {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      max-height: 0;
+      overflow-y: auto;
+      transition: max-height 0.3s ease;
+      width: 200px;
+      padding: 0 0.5em;
+    }
+    #room-menu.open {
+      max-height: 200px;
+    }
+    #room-menu ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    #room-menu li {
+      padding: 0.25em 0;
+      cursor: pointer;
+    }
+    #room-menu li.active {
+      background: #eee;
+    }
+    #new-room-input {
+      width: 100%;
+      margin-top: 0.5em;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
-  <header style="padding:0.5em;background:#f0f0f0;display:flex;gap:0.5em;align-items:center;">
+  <header style="padding:0.5em;background:#f0f0f0;display:flex;gap:0.5em;align-items:center;position:relative;">
     <div id="room-toggle" style="display:flex;align-items:center;cursor:pointer;gap:0.25em;margin-right:1em;">
       <i class="fa-solid fa-comments" aria-hidden="true"></i>
       <span id="room-name" style="font-weight:bold"></span>
@@ -136,9 +170,13 @@
       <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
       <span class="icon-fallback">Edit</span>
     </button>
-    <div id="room-menu" style="display:none;margin-left:auto">
-      <select id="room-select"></select>
-      <button id="add-room">Add Room</button>
+    <div id="room-menu" class="room-menu">
+      <ul id="room-list"></ul>
+      <button id="add-room" class="icon-button" title="Add room" type="button">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span class="icon-fallback">Add</span>
+      </button>
+      <input id="new-room-input" type="text" placeholder="Room name" style="display:none" />
     </div>
   </header>
   <ul id="messages"></ul>
