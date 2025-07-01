@@ -9,7 +9,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 - Chat persists across reconnects
 - Runs entirely offline on local Wi-Fi
 - Choose a display name that persists across refreshes
-- Start simple turn-based games chosen from a list
+- Start simple turn-based games like Tic-Tac-Toe or Connect 4 chosen from a list
 
 ## Roadmap
 - Multiple chat rooms
@@ -74,7 +74,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
   As a user, I want to initiate quick games with others to pass time while
   waiting for my flight.  
   *UI*: A "Games" pane or tab lists available titles (e.g., Trivia,
-  Tic-Tac-Toe). Clicking a game opens a lobby.
+  Tic-Tac-Toe, Connect 4). Clicking a game opens a lobby.
 
 - **Play Games**  
   As a player, I want a simple interface for multiplayer games within the chat
@@ -144,7 +144,7 @@ applyMove(state, move, user) // -> updated state after a player move
 summary(state)    // -> short text description of the current state
 ```
 
-Client code uses `render(state, sendMove)` (if provided) to draw the board and dispatch moves. `tictactoe.js` demonstrates a complete implementation where the creator plays as **X** and everyone else shares the **O** side.
+Client code uses `render(state, sendMove)` (if provided) to draw the board and dispatch moves. `tictactoe.js` demonstrates a complete implementation where the creator plays as **X** and everyone else shares the **O** side. `connect4.js` implements a similar approach for Connect 4.
 
 To begin a game, click the chess knight icon in the message form and choose from the available titles.
 
