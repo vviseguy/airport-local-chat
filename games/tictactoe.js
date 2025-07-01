@@ -5,25 +5,26 @@ class TicTacToe extends BaseGame {
     return {
       game: 'tictactoe',
       board: Array(9).fill(null),
-      players: [user],
-      next: user.id,
+      players: [user], // first player is always X
+      next: 'X',
       winner: null
     };
   }
 
   applyMove(state, move, user) {
     const { index } = move;
-    if (state.winner || state.next !== user.id || state.board[index]) return state;
+    if (state.winner || state.board[index]) return state;
 
-    if (!state.players.find(p => p.id === user.id)) {
-      if (state.players.length < 2) {
-        state.players.push(user);
-      } else {
-        return state;
-      }
+    const xPlayer = state.players[0];
+    const symbol = user.id === xPlayer.id ? 'X' : 'O';
+    if ((state.next === 'X' && symbol !== 'X') || (state.next === 'O' && symbol !== 'O')) {
+      return state;
     }
 
-    const symbol = state.players[0].id === user.id ? 'X' : 'O';
+    if (symbol === 'O' && !state.players.find(p => p.id === user.id)) {
+      state.players.push(user);
+    }
+
     state.board[index] = symbol;
     const lines = [
       [0,1,2],[3,4,5],[6,7,8],
@@ -39,8 +40,7 @@ class TicTacToe extends BaseGame {
       state.winner = 'draw';
     }
     if (!state.winner) {
-      const other = state.players.find(p => p.id !== user.id);
-      if (other) state.next = other.id;
+      state.next = state.next === 'X' ? 'O' : 'X';
     }
     return state;
   }
@@ -48,12 +48,11 @@ class TicTacToe extends BaseGame {
   summary(state) {
     if (state.winner) {
       if (state.winner === 'draw') return 'Draw!';
-      const idx = state.winner === 'X' ? 0 : 1;
-      const player = state.players[idx];
-      return `${player ? player.name : state.winner} wins`;
+      if (state.winner === 'X') return `${state.players[0].name} wins`;
+      return 'Everyone else wins';
     }
-    const player = state.players.find(p => p.id === state.next);
-    return player ? `${player.name}'s turn` : '';
+    if (state.next === 'X') return `${state.players[0].name}'s turn`;
+    return "Everyone else's turn";
   }
 }
 

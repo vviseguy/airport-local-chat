@@ -144,7 +144,7 @@ applyMove(state, move, user) // -> updated state after a player move
 summary(state)    // -> short text description of the current state
 ```
 
-Client code uses `render(state, sendMove)` (if provided) to draw the board and dispatch moves. `tictactoe.js` demonstrates a complete implementation.
+Client code uses `render(state, sendMove)` (if provided) to draw the board and dispatch moves. `tictactoe.js` demonstrates a complete implementation where the creator plays as **X** and everyone else shares the **O** side.
 
 To begin a game, click the chess knight icon in the message form and choose from the available titles.
 
