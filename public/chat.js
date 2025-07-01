@@ -27,12 +27,12 @@ const startGameBtn = document.getElementById('start-game');
 const roomNameEl = document.getElementById('room-name');
 const roomToggle = document.getElementById('room-toggle');
 const roomMenu = document.getElementById('room-menu');
-const roomSelect = document.getElementById('room-select');
+const roomList = document.getElementById('room-list');
 const addRoomBtn = document.getElementById('add-room');
+const newRoomInput = document.getElementById('new-room-input');
 const imageBtn = document.getElementById('image-btn');
 const imageInput = document.getElementById('image-input')
 const reactionOptions = ['👍','❤️','😂','😮','😢','😡'];
-roomMenu.style.display = 'none';
 gameMenu.style.display = 'none';
 
 imageBtn.addEventListener('click', () => imageInput.click());
@@ -143,49 +143,55 @@ let currentRoom = localStorage.getItem('room') || 'general';
 roomNameEl.textContent = currentRoom;
 
 roomToggle.onclick = () => {
-  roomMenu.style.display = roomMenu.style.display === 'none' ? 'block' : 'none';
+  roomMenu.classList.toggle('open');
+  newRoomInput.style.display = 'none';
 };
 
 socket.on('room list', rooms => {
-  roomSelect.innerHTML = '';
+  roomList.innerHTML = '';
   rooms.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r;
-    opt.textContent = r;
-    roomSelect.appendChild(opt);
+    const li = document.createElement('li');
+    li.textContent = r;
+    if (r === currentRoom) li.classList.add('active');
+    li.onclick = () => {
+      currentRoom = r;
+      localStorage.setItem('room', currentRoom);
+      roomNameEl.textContent = currentRoom;
+      socket.emit('join room', currentRoom);
+      roomMenu.classList.remove('open');
+    };
+    roomList.appendChild(li);
   });
   if (!rooms.includes(currentRoom)) {
     currentRoom = 'general';
     localStorage.setItem('room', currentRoom);
   }
-  roomSelect.value = currentRoom;
   roomNameEl.textContent = currentRoom;
   socket.emit('join room', currentRoom);
 });
 
-roomSelect.onchange = () => {
-  currentRoom = roomSelect.value;
-  localStorage.setItem('room', currentRoom);
-  roomNameEl.textContent = currentRoom;
-  socket.emit('join room', currentRoom);
-  roomMenu.style.display = 'none';
-};
-
 addRoomBtn.onclick = () => {
-  const name = prompt('Enter new room name');
-  if (name) {
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    roomSelect.appendChild(opt);
-    currentRoom = name;
-    roomSelect.value = name;
-    localStorage.setItem('room', currentRoom);
-    roomNameEl.textContent = currentRoom;
-    socket.emit('join room', currentRoom);
-    roomMenu.style.display = 'none';
+  newRoomInput.style.display = newRoomInput.style.display === 'none' ? 'block' : 'none';
+  if (newRoomInput.style.display !== 'none') {
+    newRoomInput.value = '';
+    newRoomInput.focus();
   }
 };
+
+newRoomInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const name = newRoomInput.value.trim();
+    if (name) {
+      currentRoom = name;
+      localStorage.setItem('room', currentRoom);
+      roomNameEl.textContent = currentRoom;
+      socket.emit('join room', currentRoom);
+      roomMenu.classList.remove('open');
+      newRoomInput.style.display = 'none';
+    }
+  }
+});
 
 function renderMessage(msg) {
   const item = document.createElement('li');
