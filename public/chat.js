@@ -15,6 +15,24 @@ function handleFontAwesome() {
 handleFontAwesome();
 
 const socket = io();
+socket.on('connect_error', err => {
+  console.error('Connection error:', err);
+  alert('Connection error: ' + (err && err.message ? err.message : err));
+});
+socket.on('disconnect', reason => {
+  console.error('Disconnected:', reason);
+  alert('Disconnected from server: ' + reason);
+});
+window.addEventListener('error', e => {
+  const msg = e.message || (e.error && e.error.message) || 'Unknown error';
+  console.error('Error:', msg);
+  alert('Error: ' + msg);
+});
+window.addEventListener('unhandledrejection', e => {
+  const msg = (e.reason && e.reason.message) || e.reason || 'Unknown error';
+  console.error('Error:', msg);
+  alert('Error: ' + msg);
+});
 const form = document.getElementById('form');
 const input = document.getElementById('input');
 const messages = document.getElementById('messages');
@@ -51,9 +69,20 @@ function smartTime(ts) {
 }
 
 // user identification stored locally
+function createUuid() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // simple fallback
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 let userId = localStorage.getItem('userId');
 if (!userId) {
-  userId = crypto.randomUUID();
+  userId = createUuid();
   localStorage.setItem('userId', userId);
 }
 window.userId = userId;
