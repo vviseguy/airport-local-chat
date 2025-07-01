@@ -9,6 +9,7 @@ Airport Local Chat is a lightweight local chat server you can run on a phone or 
 - Chat persists across reconnects
 - Runs entirely offline on local Wi-Fi
 - Choose a display name that persists across refreshes
+- Start simple turn-based games chosen from a list
 
 ## Roadmap
 - Multiple chat rooms
@@ -144,5 +145,7 @@ summary(state)    // -> short text description of the current state
 ```
 
 Client code uses `render(state, sendMove)` (if provided) to draw the board and dispatch moves. `tictactoe.js` demonstrates a complete implementation.
+
+To begin a game, click the chess knight icon in the message form and choose from the available titles.
 
 
